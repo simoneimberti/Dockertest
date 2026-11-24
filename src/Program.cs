@@ -4,9 +4,13 @@ using System.Text;
 static class Program
 {
     private static long _visitCount;
+    private const string CountFile = "/dati/count.txt"; // 1. Percorso del file nel volume
 
     private static async Task Main()
     {
+        Directory.CreateDirectory("/dati"); // 2. Crea la cartella se non esiste
+        if (File.Exists(CountFile)) long.TryParse(File.ReadAllText(CountFile), out _visitCount); // 3. Legge il vecchio numero all'avvio
+
         using var listener = new HttpListener();
         listener.Prefixes.Add("http://*:8080/");
         listener.Start();
@@ -23,6 +27,8 @@ static class Program
     private static async Task RespondAsync(HttpListenerContext context)
     {
         _visitCount++;
+        await File.WriteAllTextAsync(CountFile, _visitCount.ToString()); // 4. Salva il nuovo numero nel file
+
         var request = context.Request;
         var requestDetails = new StringBuilder()
             .Append(request.HttpMethod)
